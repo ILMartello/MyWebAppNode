@@ -5,7 +5,9 @@ dotenv.config();
 
 const connection = mysql.createConnection({
     host: process.env.HOST,
+
     user: process.env.USERNAME,
+    user: process.env.USER,
     password: process.env.PASSWORD,
     database: process.env.DATABASE,
     port: process.env.DB_PORT
@@ -13,13 +15,15 @@ const connection = mysql.createConnection({
 
 connection.connect((err) => {
     if (err) {
+
         console.log("NEL . ENV = USER è: " + process.env.USER);
         console.log("NEL . ENV = PORT è: " + process.env.PORT);
         console.log("NEL . ENV = PASSWORD è: " + process.env.PASSWORD);
         console.log("NEL . ENV = DATABASE è: " + process.env.DATABASE);
         console.log("NEL . ENV = HOST è: " + process.env.HOST);
-
         console.log("ERRORE NELLA CONNESSIONE DEL DB: " + err.message);
+
+        console.log(err.message);
     }
     // console.log('db ' + connection.state);
 });
@@ -53,7 +57,6 @@ class DbService {
             const dateAdded = new Date();
             const insertId = await new Promise((resolve, reject) => {
                 const query = "INSERT INTO names (name, date_added) VALUES (?,?);";
-
                 connection.query(query, [name, dateAdded] , (err, result) => {
                     if (err) reject(new Error(err.message));
                     resolve(result.insertId);
