@@ -1,26 +1,23 @@
 const mysql = require('mysql');
 const dotenv = require('dotenv');
 let instance = null;
+
 dotenv.config();
 
-const connection = mysql.createConnection({
+
+const options = {
     host: process.env.HOST,
     user: process.env.USERNAME,
     password: process.env.PASSWORD,
     database: process.env.DATABASE,
     port: process.env.DB_PORT
-});
+};
+
+const connection = mysql.createConnection(options);
+
 
 connection.connect((err) => {
     if (err) {
-
-        console.log("NEL . ENV = USER è: " + process.env.USER);
-        console.log("NEL . ENV = PORT è: " + process.env.PORT);
-        console.log("NEL . ENV = PASSWORD è: " + process.env.PASSWORD);
-        console.log("NEL . ENV = DATABASE è: " + process.env.DATABASE);
-        console.log("NEL . ENV = HOST è: " + process.env.HOST);
-        console.log("ERRORE NELLA CONNESSIONE DEL DB: " + err.message);
-
         console.log(err.message);
     }
     // console.log('db ' + connection.state);
@@ -126,4 +123,4 @@ class DbService {
     }
 }
 
-module.exports = DbService;
+module.exports = DbService, connection;

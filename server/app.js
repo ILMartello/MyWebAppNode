@@ -2,13 +2,73 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const dotenv = require('dotenv');
-dotenv.config();
 
+//For jwt
+const {v4 : uuidv4} = require('uuid');
+const session = require('express-session');
+var MySQLStore = require('express-mysql-session')(session);
+const mysql = require('mysql');
+
+dotenv.config();
 const dbService = require('./dbService');
 
+const connection = require('./dbService');
+
+
+
+//Middleware per session
+
+app.use(session({
+    secret: process.env.SESSIONKEY,
+    resave:false,
+    saveUninitialized: true,
+    cookie: {secure: false},
+    genid: ()=>uuidv4(),
+    store: new MySQLStore({
+        host: process.env.HOST,
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
+        database: process.env.DATABASE,
+        port: process.env.DB_PORT
+    })
+}));
+
+//
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended : false }));
+
+
+//Test Conservazione dello stato e informazioni nel coockie
+app.get('/',(req,res)=>{
+    req.session.colorepreferito = "blu";
+    console.log(req.session.id);
+    res.send();
+}); 
+app.get('/colore',(req,res)=>{
+    res.send(`il tuo colore preferito è ${req.session.colorepreferito}`);
+}); 
+//Test finto login
+app.get('/login', (req,res)=>{
+    req.session.isLogged = true;
+    res.send();
+});
+app.get('/postlogin',(req,res)=>{
+    if(req.session.isLogged){
+        res.send('sei loggato');
+    }
+    else{res.send('non sei loggato');}
+}); 
+
+app.get('/logout', (req,res)=>{
+   // req.session.isLogged = false;
+    //oppure per distruggere il documento salvato
+    req.session.destroy(err=>console.log(err));
+    res.send();
+});
+
+
+
 
 
 // create
