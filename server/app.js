@@ -11,16 +11,21 @@ const mysql = require('mysql');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 
+//For RSA
+const fs = require('fs');
+const checkAuth = require('./middleware/user-auth');
 
 
 
 const app = express();
+const options = {expiresIn:'100s', algorithm : 'RS256'};
 app.use(cookieParser());
 dotenv.config();
 
 const dbService = require('./dbService');
 
 //Middleware per session
+
 app.use(session({
     secret: process.env.SESSIONKEY,
     resave:false,
@@ -79,29 +84,35 @@ app.get('/logout', (req,res)=>{
 
 app.get('/login', (req , res) =>{
     const payload = {id:1, isLogged: true};
-    const options = {expiresIn:'100s'};
+ 
     const cookieSetting = {
         expires: new Date(Date.now()+ 1e5),
         httpOnly: true,
         secure: false
     };
-    const token = jwt.sign(payload, process.env.JWTKEY, options);
+    const prv_key = fs.readFileSync('../rsa.private');
+    const token = jwt.sign(payload, prv_key, options);
     res.cookie('token', token, cookieSetting).send();
     //per testare aprire un nuovo terminal e : url -X POST localhost:5000/login
 });
 
-app.get('/user/profile', (req,res)=>{
-    const token = req.cookies.token;
-    if(!token)return res.status(401).send('Nessun token fornito');
-    try{
-        const payload = jwt.verify(token, process.env.JWTKEY);
-        console.log(payload);
-    }catch(err){ res.status(401).send('Il token non è valido, oppure è scaduto');}
-   
-   
-    res.send('Il token è valido');
+app.get('/logout', (req,res)=>{
+    const cookieSetting = {
+        expires: new Date(0),
+        httpOnly: true,
+        secure: false
+    };
+    res.cookie('token', '', cookieSetting).send('Logout effettuato');
 });
 
+app.get('/user/profile', checkAuth, (req,res)=>{
+    res.send('Sei Autenticato');
+});
+
+
+app.get('/user/message', checkAuth, (req,res)=>{
+    res.send('Sei Autenticato');
+});
 
 
 // create
