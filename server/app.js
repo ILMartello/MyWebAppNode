@@ -13,7 +13,9 @@ const cookieParser = require('cookie-parser');
 
 //For RSA
 const fs = require('fs');
-const checkAuth = require('./middleware/user-auth');
+const {verifyToken, signToken, deleteToken} = require('./middleware/user-auth');
+
+//
 
 
 
@@ -82,35 +84,22 @@ app.get('/logout', (req,res)=>{
 
 
 
-app.get('/login', (req , res) =>{
-    const payload = {id:1, isLogged: true};
- 
-    const cookieSetting = {
-        expires: new Date(Date.now()+ 1e5),
-        httpOnly: true,
-        secure: false
-    };
-    const prv_key = fs.readFileSync('../rsa.private');
-    const token = jwt.sign(payload, prv_key, options);
-    res.cookie('token', token, cookieSetting).send();
-    //per testare aprire un nuovo terminal e : url -X POST localhost:5000/login
+app.get('/login',signToken, (req , res) =>{
+ res.send();
 });
 
-app.get('/logout', (req,res)=>{
-    const cookieSetting = {
-        expires: new Date(0),
-        httpOnly: true,
-        secure: false
-    };
-    res.cookie('token', '', cookieSetting).send('Logout effettuato');
+app.get('/logout',deleteToken, (req,res)=>{
+res.send();
 });
 
-app.get('/user/profile', checkAuth, (req,res)=>{
+app.get('/user/profile', verifyToken, (req,res)=>{
+   console.log("APP TEMA :");
+   console.log(req.user.tema);
     res.send('Sei Autenticato');
 });
 
 
-app.get('/user/message', checkAuth, (req,res)=>{
+app.get('/user/message', verifyToken, (req,res)=>{
     res.send('Sei Autenticato');
 });
 
